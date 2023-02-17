@@ -21,7 +21,7 @@ class Server:
 
         self.server = server
         self._rpc = xmlrpclib.Server(server)
-        self._rpc.network.xmlrpc.size_limit.set('', 2**24)
+        #self._rpc.network.xmlrpc.size_limit.set('', 2**24)
         self.ui = self.__ui(self)
         self.view = self.__view(self)
         self.system = self.__system(self)
@@ -1020,9 +1020,10 @@ class Server:
         env = lambda self: self.__server._rpc.system.env()
         pid = lambda self: self.__server._rpc.system.pid()
         listMethods = lambda self: self.__server._rpc.system.listMethods()
+        multicall = lambda self, *args: self.__server._rpc.system.multicall(args)
         env = lambda self: self.__server._rpc.system.env()
         methodHelp = lambda self, method: self.__server._rpc.system.methodHelp(method)
-        methodExists = lambda self, method: self.__server._rpc.system.methodExists(method)
+        methodExists = lambda self, method: self.__server._rpc.system.methodExist(method)
         methodSignature = lambda self, method: self.__server._rpc.system.methodSignature(method)
         capabilities = lambda self: self.__server._rpc.system.capabilities()
         getCapabilities = lambda self: self.__server._rpc.system.getCapabilities()
@@ -1083,8 +1084,8 @@ class Server:
         class __daemon:
 
             def __init__(self, server): self.__server = server
-            def __call__(self): return self.__server._rpc.system.daemon()
-            def set(self, value): return self.__server._rpc.system.daemon.set('', value)
+            def __call__(self): return bool(self.__server._rpc.system.daemon())
+            def set(self, value): return self.__server._rpc.system.daemon.set('', int(value))
 
         class __umask:
 
@@ -1373,7 +1374,7 @@ class Server:
         return matches
 
     def __repr__(self):
-        return 'rTorrent server: {0}'.format(self.server)
+        return 'rTorrent server: <{0}>'.format(self.server)
 
 class __checkConnected:
 
@@ -2049,6 +2050,10 @@ class TorrentGroup(Sequence):
         else:
             return self.data[value]
 
+    class __down:
+        def total(self):
+            pass
+
     def remove(self, value):
         self.data.remove(value)
 
@@ -2167,7 +2172,7 @@ class TorrentGroup(Sequence):
             return SizeBytes(0)
         mc = xmlrpclib.MultiCall(self.data[0].server._rpc)
         for torrent in self.data:
-            mc.d.up_total(torrent.hash)
+            mc.d.up.total(torrent.hash)
         return SizeBytes(sum(mc()))
 
     def down_total(self):
@@ -2177,7 +2182,7 @@ class TorrentGroup(Sequence):
             return SizeBytes(0)
         mc = xmlrpclib.MultiCall(self.data[0].server._rpc)
         for torrent in self.data:
-            mc.d.down_total(torrent.hash)
+            mc.d.down.total(torrent.hash)
         return SizeBytes(sum(mc()))
 
     def hashing(self):
@@ -2260,6 +2265,7 @@ class Tracker:
         self.url = url
         self.hash = hash
         self.index = index
+        self.idx = 0;
 
     def group(self):
         return self.server._rpc.t.group(self.hash, self.index)
@@ -2301,7 +2307,15 @@ class Tracker:
         return self.server._rpc.t.enabled.set(self.hash, self.index, value)
 
     def __iter__(self):
-        return iter(self.server)
+        return self.url
+
+    def __next__(self):
+        self.idx += 1
+        try:
+            return self.url[self.idx-1]
+        except IndexError:
+            self.idx = 0
+            raise StopIteration
 
     def __repr__(self):
         return str(self.url)
