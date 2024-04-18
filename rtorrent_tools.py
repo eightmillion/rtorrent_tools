@@ -17,7 +17,7 @@ else:
 
 class Server:
 
-    def __init__(self, server):
+    def __init__(self, server: str) -> None:
 
         self.server = server
         self._rpc = xmlrpclib.Server(server)
@@ -44,16 +44,16 @@ class Server:
         self._nameCache = {}
         self._trackerCache = {}
 
-    def to_kb(self, value): return self._rpc.to_kb(value)
-    def to_mb(self, value): return self._rpc.to_mb(value)
-    def to_xb(self, value): return self._rpc.to_xb(value)
-    def download_list(self): return self._rpc.download_list()
-    def download_rate(self, rate): return self._rpc.download_rate(rate)
-    def upload_rate(self, rate): return self._rpc.upload_rate(rate)
-    def close_low_diskspace(self, space): return self._rpc.close_low_diskspace('', space)
-    def close_untied(self, space): return self._rpc.close_untied()
-    def encoding_list(self): return self._rpc.encoding_list('')
-    def max_memory_usage(self, value): return self._rpc.max_memory_usage(value)
+    def to_kb(self, value: str | int) -> str: return self._rpc.to_kb(value)
+    def to_mb(self, value: str | int) -> str: return self._rpc.to_mb(value)
+    def to_xb(self, value: str | int) -> str: return self._rpc.to_xb(value)
+    def download_list(self) -> list: return self._rpc.download_list()
+    def download_rate(self, rate: int) -> bool: return bool(self._rpc.download_rate(rate))
+    def upload_rate(self, rate: int) -> bool: return bool(self._rpc.upload_rate(rate))
+    def close_low_diskspace(self, space: int) -> bool: return bool(self._rpc.close_low_diskspace('', space))
+    def close_untied(self) -> int: return self._rpc.close_untied()
+    def encoding_list(self, value: str) -> int: return self._rpc.encoding_list(value)
+    def max_memory_usage(self, value: str) -> int: return self._rpc.max_memory_usage(value)
     def add_peer(self, arg1, arg2): return self._rpc.add_peer(arg1, arg2)
     def check_hash(self, value): return self._rpc.check_hash(int(value))
     def remove_untied(self): return self._rpc.remove_untied()
@@ -78,13 +78,13 @@ class Server:
         class __pex:
 
             def __init__(self, server): self.__server = server
-            def __call__(self): return self.__server._rpc.protocol.pex()
-            def set(self, value): return self.__server._rpc.protocol.pex.set('', value)
+            def __call__(self): return bool(self.__server._rpc.protocol.pex())
+            def set(self, value: int | bool) -> bool: return bool(self.__server._rpc.protocol.pex.set('', int(value)))
 
         class __encryption:
 
             def __init__(self, server): self.__server = server
-            def set(self, value): return self.__server._rpc.protocol.encryption.set('', value)
+            def set(self) -> bool: return bool(self.__server._rpc.protocol.encryption.set(''))
 
         class __connection:
 
@@ -1352,7 +1352,7 @@ class Server:
 
         return matches
 
-    def unregistered(self, view="main"):
+    def unregistered(self, search='', view="main"):
 
         matches = self.view(view)
         matches_copy = matches[:]
@@ -1371,6 +1371,8 @@ class Server:
                           re.I):
                 matches.remove(matches_copy[i])
 
+        if search:
+            return matches.filter(lambda x:search in x.name.lower())
         return matches
 
     def __repr__(self):
@@ -1505,9 +1507,9 @@ class Torrent:
             self.__server = server
             self.__hash = hash
 
-        def __call__(self): return self.__server._rpc.d.accepting_seeders(self.__hash)
-        def disable(self): return self.__server._rpc.d.accepting_seeders.disable(self.__hash)
-        def enable(self): return self.__server._rpc.d.accepting_seeders.enable(self.__hash)
+        def __call__(self): return bool(self.__server._rpc.d.accepting_seeders(self.__hash))
+        def disable(self): return bool(self.__server._rpc.d.accepting_seeders.disable(self.__hash))
+        def enable(self): return bool(self.__server._rpc.d.accepting_seeders.enable(self.__hash))
 
     class __custom:
 
