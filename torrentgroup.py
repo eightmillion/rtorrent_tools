@@ -94,7 +94,8 @@ class TorrentGroup(Sequence):
                 self.data.remove(torrent)
 
     def erase_all_with_files(self):
-        '''removes all Torrents in group from rtorrent'''
+        '''removes all Torrents in group from rtorrent
+        and deletes data from disk. use with caution'''
         for torrent in self.data[:]:
             if torrent.erase_with_files():
                 self.data.remove(torrent)
@@ -103,7 +104,7 @@ class TorrentGroup(Sequence):
         '''stops all torrents in group'''
         if not self.data:
             return []
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.stop(torrent.hash)
         return list(mc())
@@ -112,7 +113,7 @@ class TorrentGroup(Sequence):
         '''starts all torrents in group'''
         if not self.data:
             return []
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.start(torrent.hash)
         return list(mc())
@@ -121,7 +122,7 @@ class TorrentGroup(Sequence):
         '''pauses all torrents in group'''
         if not self.data:
             return []
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.pause(torrent.hash)
         return list(mc())
@@ -130,7 +131,7 @@ class TorrentGroup(Sequence):
         '''resumes all torrents in group'''
         if not self.data:
             return []
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.resume(torrent.hash)
         return list(mc())
@@ -139,7 +140,7 @@ class TorrentGroup(Sequence):
         '''opens all torrents in group'''
         if not self.data:
             return []
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.open(torrent.hash)
         return list(mc())
@@ -148,7 +149,7 @@ class TorrentGroup(Sequence):
         '''closes all torrents in group'''
         if not self.data:
             return []
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.close(torrent.hash)
         return list(mc())
@@ -163,7 +164,7 @@ class TorrentGroup(Sequence):
         all the Torrents in the group in bytes'''
         if not self.data:
             return 0
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.size_bytes(torrent.hash)
         return sum(mc())
@@ -173,7 +174,7 @@ class TorrentGroup(Sequence):
         are complete'''
         if not self.data:
             return True
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.complete(torrent.hash)
         return all(mc())
@@ -182,7 +183,7 @@ class TorrentGroup(Sequence):
         '''returns True if any of the Torrents in the group are hashing'''
         if not self.data:
             return False
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.hashing(torrent.hash)
         return any(mc())
@@ -192,7 +193,7 @@ class TorrentGroup(Sequence):
         '''returns the total overall ratio of all the Torrents in the group'''
         if not self.data:
             return 0
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.group.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.ratio(torrent.hash)
 
@@ -231,9 +232,9 @@ class TorrentGroup(Sequence):
     def set_throttle_name(self, name):
         '''sets a throttle name for each Torrent in the group.'''
         for torrent in self:
-            torrent.pause()
+            self.pause_all()
             torrent.throttle_name.set(name)
-            torrent.resume()
+            self.resume_all()
 
     def sort(self):
         self.data.sort()
