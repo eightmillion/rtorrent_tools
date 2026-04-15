@@ -5,7 +5,7 @@ from .torrent import Torrent
 from .torrentgroup import TorrentGroup
 from .tracker import Tracker
 from .fileutils import *
-from .JsonRpcProxy import *
+from .jsonrpcproxy import *
 import re
 import socket
 import http.client
@@ -1590,20 +1590,6 @@ class Server:
 
     def get_name(self, hash):
         return self._rpc.d.name(hash)
-
-    def matching_re(self, pattern, caseInsensitive=True, view="main"):
-        '''pattern is a regex'''
-        #matches = self.view(view)
-        #for torrent in matches[:]:
-        #    if not re.search(pattern, torrent.name, [0, 2][caseInsensitive]):
-        #        matches.remove(torrent)
-        #return matches
-        matches = TorrentGroup()
-        torrents = self._rpc.d.multicall2('',view, 'd.name=', 'd.hash=')
-        for torrent in torrents:
-            if re.search(pattern, torrent[0], [0, 2][caseInsensitive]):
-                matches.append(Torrent(self, torrent[1]))
-        return matches
 
     def matching_names(self, pattern, caseInsensitive=True, view="main"):
 
