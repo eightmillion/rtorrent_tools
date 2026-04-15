@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from collections import namedtuple
 from .torrent import Torrent
 from .fileutils import SizeBytes
+from .jsonrpcproxy import *
 import re
 import datetime
 import sys
@@ -19,13 +20,15 @@ class TorrentGroup(Sequence):
 
     def __init__(self, *items):
         self.data = list(items)
+        self.down = self.__down(self)
+        self.up = self.__up(self)
 
     def __len__(self):
         return len(self.data)
 
     def pop(self, value=False):
         if value:
-            return self.data(value)
+            return self.data.pop(value)
         return self.data.pop()
 
     def __getitem__(self, value):
@@ -35,8 +38,48 @@ class TorrentGroup(Sequence):
             return self.data[value]
 
     class __down:
+
+        def __init__(self, group):
+            self.group = group
+
         def total(self):
-            pass
+            if not self.group.data:
+                return SizeBytes(0)
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.down.total(torrent.hash)
+            return SizeBytes(sum(mc()))
+
+        def rate(self):
+            '''returns SizeByte object containing the current
+            total download rate of all the Torrents in the group'''
+            if not self.group.data:
+                return SizeBytes(0)
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.down.rate(torrent.hash)
+            return SizeBytes(sum(mc()))
+
+    class __up:
+
+        def __init__(self, group):
+            self.group = group
+
+        def total(self):
+            if not self.group.data:
+                return SizeBytes(0)
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.up.total(torrent.hash)
+            return SizeBytes(sum(mc()))
+
+        def rate(self):
+            if not self.group.data:
+                return SizeBytes(0)
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.up.rate(torrent.hash)
+            return SizeBytes(sum(mc()))
 
     def remove(self, value):
         self.data.remove(value)
@@ -135,46 +178,6 @@ class TorrentGroup(Sequence):
             mc.d.complete(torrent.hash)
         return all(mc())
 
-    def up_rate(self):
-        '''returns SizeByte object containing the current
-        total upload rate of all the Torrents in the group'''
-        if not self.data:
-            return SizeBytes(0)
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
-        for torrent in self.data:
-            mc.d.up_rate(torrent.hash)
-        return SizeBytes(sum(mc()))
-
-    def down_rate(self):
-        '''returns SizeByte object containing the current
-        total download rate of all the Torrents in the group'''
-        if not self.data:
-            return SizeBytes(0)
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
-        for torrent in self.data:
-            mc.d.down_rate(torrent.hash)
-        return SizeBytes(sum(mc()))
-
-    def up_total(self):
-        '''returns SizeByte object containing the current
-        total bytes uploaded of all the Torrents in the group'''
-        if not self.data:
-            return SizeBytes(0)
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
-        for torrent in self.data:
-            mc.d.up.total(torrent.hash)
-        return SizeBytes(sum(mc()))
-
-    def down_total(self):
-        '''returns SizeByte object containing the current
-        total bytes downloaded of all the Torrents in the group'''
-        if not self.data:
-            return SizeBytes(0)
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
-        for torrent in self.data:
-            mc.d.down.total(torrent.hash)
-        return SizeBytes(sum(mc()))
-
     def hashing(self):
         '''returns True if any of the Torrents in the group are hashing'''
         if not self.data:
@@ -238,7 +241,7 @@ class TorrentGroup(Sequence):
     def multicall(self, arg):
         if not self.data:
             return []
-        mc = xmlrpc.client.MultiCall(self.data[0].server._rpc)
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self:
             mc._MultiCall__call_list.append(
                 (arg, (torrent.hash,))

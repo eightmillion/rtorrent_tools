@@ -40,7 +40,6 @@ class UnixStreamXMLRPCClient(xmlrpc.client.ServerProxy):
         )
 
 class Server:
-
     def __init__(self: object, server: str, jsonrpc=False) -> None:
 
         self.server = server
@@ -1649,6 +1648,13 @@ class Server:
                                                               'd.hash=',
                                                               'd.message=')
                               if 'Unregistered' in y[1]])
+
+    def get_mc_proxy(self):
+
+        if self.jsonrpc:
+            return JsonRpcMultiCall(self._rpc)
+        else:
+            return xmlrpc.client.MultiCall(self._rpc)
 
     def __repr__(self):
         return 'rTorrent server: <{0}>'.format(self.server)

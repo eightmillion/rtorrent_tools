@@ -146,6 +146,15 @@ class JsonRpcMultiCall:
     def __getattr__(self, name):
         return JsonRpcMultiCallChild(self, name)
 
+	def _MultiCall__call_list(self, call_list):
+        """
+        Internal xmlrpc.client compatibility method.
+        Accepts a list of tuples/lists: [('methodName', (params,)), ...]
+        """
+        for method_name, params in call_list:
+            self._add_call(method_name, params)
+        return self()
+
     def __call__(self):
         if not self._calls:
             return []
