@@ -93,6 +93,7 @@ class JsonRpcProxy:
         if self._verbose:
             logger.info(f"REQ: {json.dumps(payload)}")
 
+
         try:
             resp = self._session.post(
                 self._url, json=payload,
@@ -125,6 +126,86 @@ class JsonRpcProxy:
             err = data["error"]
             raise xmlrpc.client.Fault(err.get('code', 1), err.get('message', ''))
         return data.get("result")
+    def __call__(self, *args):
+        # 1. Prepare the Payload
+        # Intercept manual system.multicall(list_of_structs) for compatibility
+        if self._method_name == "system.multicall" and args:
+            calls = args[0] if isinstance(args[0], list) else list(args)
+            payload = [
+                {
+                    "jsonrpc": "2.0",
+                    "method": c.get('methodName'),
+                    "params": c.get('params', []),
+                    "id": str(uuid.uuid4())
+                } for c in calls
+            ]
+        else:
+            if not self._method_name:
+                raise TypeError("Proxy not callable at root")
+            payload = {
+                "jsonrpc": "2.0",
+                "method": self._method_name,
+                "params": list(args),
+                "id": str(uuid.uuid4())
+            }
+
+        if self._verbose:
+            logger.info(f"REQ: {json.dumps(payload)}")
+
+        # 2. Execute the Request
+        try:
+            resp = self._session.post(
+                self._url, 
+                json=payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=self._timeout, 
+                auth=self._auth, 
+                verify=self._verify
+            )
+            # Raise an exception for 4xx or 5xx status codes
+            resp.raise_for_status()
+            data = resp.json()
+            
+        except requests.exceptions.HTTPError as e:
+            # Map HTTP errors to native xmlrpc.client.ProtocolError
+            raise xmlrpc.client.ProtocolError(
+                self._url,
+                e.response.status_code,
+                e.response.reason,
+                e.response.headers
+            )
+        except Exception as e:
+            # Handle connection timeouts, DNS issues, etc.
+            raise xmlrpc.client.ProtocolError(self._url, 500, str(e), {})
+
+        # 3. Handle the Response Data
+        # Handle Batch Responses (system.multicall compatibility)
+        if isinstance(data, list):
+            res_map = {r['id']: r for r in data}
+            results = []
+            for q in (payload if isinstance(payload, list) else [payload]):
+                r = res_map.get(q['id'])
+                if not r:
+                    results.append([None])
+                elif "error" in r:
+                    err = r["error"]
+                    # Map batch errors to Fault objects inside the list
+                    results.append(xmlrpc.client.Fault(
+                        err.get("code", 1), err.get("message", "")))
+                else:
+                    # XML-RPC multicall returns results wrapped in a single-item list
+                    results.append([r.get("result")])
+            return results
+
+        # Handle Single Response Errors
+        if "error" in data:
+            err = data["error"]
+            raise xmlrpc.client.Fault(
+                err.get('code', 1), 
+                err.get('message', 'Unknown Error')
+            )
+
+        return data.get("result")
 
 
 class JsonRpcMultiCall:
@@ -146,7 +227,7 @@ class JsonRpcMultiCall:
     def __getattr__(self, name):
         return JsonRpcMultiCallChild(self, name)
 
-	def _MultiCall__call_list(self, call_list):
+    def _MultiCall__call_list(self, call_list):
         """
         Internal xmlrpc.client compatibility method.
         Accepts a list of tuples/lists: [('methodName', (params,)), ...]

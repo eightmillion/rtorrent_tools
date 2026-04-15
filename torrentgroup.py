@@ -231,10 +231,12 @@ class TorrentGroup(Sequence):
 
     def set_throttle_name(self, name):
         '''sets a throttle name for each Torrent in the group.'''
+        self.pause_all()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self:
-            self.pause_all()
-            torrent.throttle_name.set(name)
-            self.resume_all()
+            mc.d.throttle_name.set(torrent.hash, name)
+        mc()
+        self.resume_all()
 
     def sort(self):
         self.data.sort()
