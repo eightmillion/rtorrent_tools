@@ -69,64 +69,6 @@ class JsonRpcProxy:
         return child
 
     def __call__(self, *args):
-        # Intercept manual system.multicall(list_of_structs)
-        if self._method_name == "system.multicall" and args:
-            calls = args[0] if isinstance(args[0], list) else list(args)
-            payload = [
-                {
-                    "jsonrpc": "2.0",
-                    "method": c.get('methodName'),
-                    "params": c.get('params', []),
-                    "id": str(uuid.uuid4())
-                } for c in calls
-            ]
-        else:
-            if not self._method_name:
-                raise TypeError("Proxy not callable at root")
-            payload = {
-                "jsonrpc": "2.0",
-                "method": self._method_name,
-                "params": list(args),
-                "id": str(uuid.uuid4())
-            }
-
-        if self._verbose:
-            logger.info(f"REQ: {json.dumps(payload)}")
-
-
-        try:
-            resp = self._session.post(
-                self._url, json=payload,
-                headers={'Content-Type': 'application/json'},
-                timeout=self._timeout, auth=self._auth, verify=self._verify
-            )
-            resp.raise_for_status()
-            data = resp.json()
-        except Exception as e:
-            raise xmlrpc.client.ProtocolError(self._url, 500, str(e), {})
-
-        # Handle batch response for system.multicall compatibility
-        if isinstance(data, list):
-            res_map = {r['id']: r for r in data}
-            # Reconstruct in order of requests
-            results = []
-            for q in payload:
-                r = res_map.get(q['id'])
-                if not r:
-                    results.append([None])
-                elif "error" in r:
-                    err = r["error"]
-                    results.append(xmlrpc.client.Fault(
-                        err.get("code", 1), err.get("message", "")))
-                else:
-                    results.append([r.get("result")])
-            return results
-
-        if "error" in data:
-            err = data["error"]
-            raise xmlrpc.client.Fault(err.get('code', 1), err.get('message', ''))
-        return data.get("result")
-    def __call__(self, *args):
         # 1. Prepare the Payload
         # Intercept manual system.multicall(list_of_structs) for compatibility
         if self._method_name == "system.multicall" and args:
@@ -173,10 +115,11 @@ class JsonRpcProxy:
                 e.response.status_code,
                 e.response.reason,
                 e.response.headers
-            )
+            ) from None
         except Exception as e:
             # Handle connection timeouts, DNS issues, etc.
-            raise xmlrpc.client.ProtocolError(self._url, 500, str(e), {})
+            raise xmlrpc.client.ProtocolError(
+                    self._url, 500, str(e), {}) from None
 
         # 3. Handle the Response Data
         # Handle Batch Responses (system.multicall compatibility)
@@ -248,7 +191,8 @@ class JsonRpcMultiCall:
             resp.raise_for_status()
             data = resp.json()
         except Exception as e:
-            raise xmlrpc.client.ProtocolError(self._url, 500, str(e), {})
+            raise xmlrpc.client.ProtocolError(
+                    self._url, 500, str(e), {}) from None
 
         res_map = {r['id']: r for r in data}
         final = []

@@ -1,15 +1,10 @@
-from types import FunctionType
-import pprint
-from collections.abc import Sequence
 from .torrent import Torrent
 from .torrentgroup import TorrentGroup
-from .tracker import Tracker
 from .fileutils import *
 from .jsonrpcproxy import *
 import re
 import socket
 import http.client
-import sys
 import xmlrpc.client
 
 class UnixStreamHTTPConnection(http.client.HTTPConnection):
@@ -297,7 +292,8 @@ class Server:
             self.tos = self.__tos(server)
             self.xmlrpc = self.__xmlrpc(server)
 
-        open_sockets = lambda self: self.__server._rpc.network.open_sockets()
+        def open_sockets(self):
+            self.__server._rpc.network.open_sockets()
 
         class __xmlrpc:
 
@@ -807,11 +803,11 @@ class Server:
             self.general = self.__general(server)
             self.tracker = self.__tracker(server)
 
-        list = lambda self: self.__server._rpc.choke_group.list()
-        size = lambda self: self.__server._rpc.choke_group.size()
-        insert = lambda self, group: self.__server._rpc.\
+        def list(self): return self.__server._rpc.choke_group.list()
+        def size(self): return self.__server._rpc.choke_group.size()
+        def insert(self, group): return  self.__server._rpc.\
                 choke_group.insert('', group)
-        index_of = lambda self, group: self.__server._rpc.\
+        def index_of(self, group): return self.__server._rpc.\
                 choke_group.index_of('', group)
 
         class __general:
@@ -1067,7 +1063,8 @@ class Server:
 
         def insert(self, comm):
             return self.__server._rpc.group.insert(comm)
-        def insert(self, view):
+
+        def insert_persistent_view(self, view):
             return self.__server._rpc.group.insert_persistent_view(view)
 
         class __seeding:
@@ -1204,8 +1201,8 @@ class Server:
             self.min = self.__min(server)
             self.max = self.__max(server)
 
-        enable = lambda self: self.__server._rpc.ratio.enable()
-        disable = lambda self: self.__server._rpc.ratio.disable()
+        def enable(self): self.__server._rpc.ratio.enable()
+        def disable(self): self.__server._rpc.ratio.disable()
 
         class __upload:
 
@@ -1307,27 +1304,26 @@ class Server:
             self.file_status_cache = self.__file_status_cache(server)
             self.daemon = self.__daemon(server)
 
-        time = lambda self: self.__server._rpc.system.time()
-        time_seconds = lambda self: self.__server._rpc.system.time_seconds()
-        time_usec = lambda self: self.__server._rpc.system.time_usec()
-        hostame = lambda self: self.__server._rpc.system.hostname()
-        client_version = lambda self: self.__server._rpc.system.client_version()
-        library_version = lambda self: self.__server._rpc.\
+        def time(self): return self.__server._rpc.system.time()
+        def time_seconds(self): return self.__server._rpc.system.time_seconds()
+        def time_usec(self): return self.__server._rpc.system.time_usec()
+        def hostame(self): return self.__server._rpc.system.hostname()
+        def client_version(self): return self.__server._rpc.system.client_version()
+        def library_version(self): return self.__server._rpc.\
                 system.library_version()
-        env = lambda self: self.__server._rpc.system.env()
-        pid = lambda self: self.__server._rpc.system.pid()
-        listMethods = lambda self: self.__server._rpc.system.listMethods()
-        multicall = lambda self, *args: self.__server.\
+        def pid(self): return self.__server._rpc.system.pid()
+        def listMethods(self): return self.__server._rpc.system.listMethods()
+        def multicall(self, *args): return self.__server.\
                 _rpc.system.multicall(args)
-        env = lambda self: self.__server._rpc.system.env()
-        methodHelp = lambda self, method: self.__server.\
+        def env(self): return self.__server._rpc.system.env()
+        def methodHelp(self, method): return self.__server.\
                 _rpc.system.methodHelp(method)
-        methodExists = lambda self, method: self.__server.\
+        def methodExists(self, method): return self.__server.\
                 _rpc.system.methodExist(method)
-        methodSignature = lambda self, method: self.__server._rpc.\
+        def methodSignature(self, method): return self.__server._rpc.\
                 system.methodSignature(method)
-        capabilities = lambda self: self.__server._rpc.system.capabilities()
-        getCapabilities = lambda self: self.__server._rpc.\
+        def capabilities(self): return self.__server._rpc.system.capabilities()
+        def getCapabilities(self): return self.__server._rpc.\
                 system.getCapabilities()
 
         class __cwd:
@@ -1341,11 +1337,11 @@ class Server:
 
             def __init__(self, server): self.__server = server
 
-            failed_counter = lambda self: self.__server.\
+            def failed_counter(self): return self.__server.\
                     _rpc.system.files.failed_counter()
-            opened_counter = lambda self: self.__server.\
+            def opened_counter(self): return self.__server.\
                     _rpc.system.files.opened_counter()
-            closed_counter = lambda self: self.__server.\
+            def closed_counter(self): return self.__server.\
                     _rpc.system.files.closed_counter()
 
         class __file:
@@ -1448,12 +1444,14 @@ class Server:
 
         def size(self, view=None):
 
-            if view is None: view = self.__server.ui.current_view()
+            if view is None:
+                view = self.__server.ui.current_view()
             return self.__server._rpc.view.size('', view)
 
         def size_not_visible(self, view=None):
 
-            if view is None: view = self.__server.ui.current_view()
+            if view is None:
+                view = self.__server.ui.current_view()
             return self.__server._rpc.view.size_not_visible('', view)
 
         def add(self, view_name): return self.__server._rpc.view.add(view_name)
@@ -1573,7 +1571,8 @@ class Server:
                                            )('', step)
 
     def torrent_list_layout(self, value=None):
-        if value is not None: return self._rpc.torrent_list_layout(value)
+        if value is not None:
+            return self._rpc.torrent_list_layout(value)
         state = self.ui.torrent_list.layout()
         next_state = "full" if state == "compact" else "compact"
         return self.ui.torrent_list.layout.set(next_state)

@@ -84,7 +84,7 @@ class Peer:
         def __call__(self):
             return bool(self.server._rpc.p.banned(f'{self.infohash}:p{self.id}'))
 
-        def set(self):
+        def set(self, value):
             return self.server._rpc.p.banned.set(self, value)
 
     class __snubbed:
@@ -95,5 +95,5 @@ class Peer:
         def __call__(self):
             return bool(self.server._rpc.p.snubbed(f'{self.infohash}:p{self.id}'))
 
-        def set(self):
+        def set(self, value):
             return self.server._rpc.p.snubbed.set(self, value)

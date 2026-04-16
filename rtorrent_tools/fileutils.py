@@ -1,17 +1,11 @@
 from collections.abc import Sequence
-from collections import namedtuple
 import pprint
 import datetime
-import time
 
 class File:
 
     '''takes a name (path), an info hash, and an index number to initialize.
     all file operations are available as instance methods.'''
-
-    priority = namedtuple('priority', 'off normal high')(
-        0, 1, 2
-    )
 
     def __init__(self, server, name, hash, index):
         self.server = server
@@ -237,4 +231,6 @@ class TimePeriod(datetime.timedelta):
     def __repr__(self):
         return 'TimePeriod' + repr(self.format())
 
-chunk = lambda hashes, l=100: [hashes[x:x+l] for x in range(0, len(hashes), l)]
+def chunk(hashes, chunk_size=100):
+    return [hashes[x:x+chunk_size]
+            for x in range(0, len(hashes), chunk_size)]

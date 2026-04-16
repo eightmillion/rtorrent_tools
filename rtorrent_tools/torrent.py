@@ -562,9 +562,6 @@ class Torrent:
     def is_open(self):
         return bool(self.server._rpc.d.is_open(self.hash))
 
-    def is_pex_active(self):
-        return bool(self.server._rpc.d.is_pex_active(self.hash))
-
     def is_private(self):
         return bool(self.server._rpc.d.is_private(self.hash))
 
@@ -708,7 +705,7 @@ class Torrent:
             return ( f'{results[0][0]} | {urlsplit(results[4][0][0][0]).netloc}'
                   f' | {results[2][0]/results[1][0]*100:.2f}% | {results[3][0]}'
                     )
-        except:
+        except Exception:
             return results
 
     def __str__(self):

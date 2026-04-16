@@ -3,15 +3,9 @@
 from types import FunctionType
 import pprint
 from collections.abc import Sequence
-from collections import namedtuple
 from .torrent import Torrent
 from .fileutils import SizeBytes
 from .jsonrpcproxy import *
-import re
-import datetime
-import sys
-import time
-import xmlrpc
 
 class TorrentGroup(Sequence):
 
@@ -238,13 +232,14 @@ class TorrentGroup(Sequence):
     def filter(self, func):
         '''takes a function that returns a bool as an argument and filters the
         group by applying the function to each member'''
-        if type(func) == str:
+        if type(func) is str:
             s = func
-            func = lambda x: s in x.name.lower()
+            def func(x):
+                return s in x.name.lower()
         ret = list(filter(func, self))
         try:
             return TorrentGroup(*ret)
-        except:
+        except Exception:
             return ret
 
     def unregistered(self):

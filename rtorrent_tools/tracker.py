@@ -1,4 +1,3 @@
-from collections import namedtuple
 
 class Tracker:
 
@@ -7,7 +6,7 @@ class Tracker:
         self.url = url
         self.hash = hash
         self.index = index
-        self.idx = 0;
+        self.idx = 0
 
     def group(self):
         return self.server._rpc.t.group(self.hash, self.index)
@@ -60,7 +59,7 @@ class Tracker:
             return self.url[self.idx-1]
         except IndexError:
             self.idx = 0
-            raise StopIteration
+            raise StopIteration from None
 
     def __repr__(self):
         return str(self.url)
