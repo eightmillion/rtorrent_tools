@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtorrent_tools"
+version = "0.1.0" # Update as needed
+description = "Python XMLRPC/JSONRPC Library for Rtorrent"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+  {name = "eightmillion"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Communications :: File Sharing",
+]
+
+# Add any packages from your requirements.txt into this list
+dependencies = [
+    # e.g., "requests>=2.25.1", 
+]
+
+[project.urls]
+Homepage = "https://github.com/eightmillion/rtorrent_tools"
+Repository = "https://github.com/eightmillion/rtorrent_tools"
+Issues = "https://github.com/eightmillion/rtorrent_tools/issues"
+
+[tool.setuptools]
+# Specifies that the packages are in the root directory
+# Note: See the restructuring recommendation below
+packages = ["rtorrent_tools"]
