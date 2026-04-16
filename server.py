@@ -1600,6 +1600,8 @@ class Server:
         return matches
 
     def get_torrent_by_hash(self, hash):
+        # if the hash isn't found, this will raise an error
+        self._rpc.d.name(hash)
         return Torrent(self, hash)
 
     def matching_trackers(self, pattern, caseInsensitive=True,

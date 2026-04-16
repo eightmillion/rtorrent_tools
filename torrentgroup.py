@@ -22,6 +22,7 @@ class TorrentGroup(Sequence):
         self.data = list(items)
         self.down = self.__down(self)
         self.up = self.__up(self)
+        self.directory = self.__directory(self)
 
     def __len__(self):
         return len(self.data)
@@ -81,6 +82,26 @@ class TorrentGroup(Sequence):
                 mc.d.up.rate(torrent.hash)
             return SizeBytes(sum(mc()))
 
+    class __directory:
+
+        def __init__(self, group):
+            self.group = group
+
+        def __call__(self):
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.directory(torrent.hash)
+            return mc()
+
+        def set(self, directory):
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.directory.set(torrent.hash, directory)
+            return mc()
+
+    def set_create_resize(self):
+        self.each(lambda x:x.set_create_resize())
+
     def remove(self, value):
         self.data.remove(value)
 
@@ -104,7 +125,7 @@ class TorrentGroup(Sequence):
         '''stops all torrents in group'''
         if not self.data:
             return []
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.stop(torrent.hash)
         return list(mc())
@@ -113,7 +134,7 @@ class TorrentGroup(Sequence):
         '''starts all torrents in group'''
         if not self.data:
             return []
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.start(torrent.hash)
         return list(mc())
@@ -122,7 +143,7 @@ class TorrentGroup(Sequence):
         '''pauses all torrents in group'''
         if not self.data:
             return []
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.pause(torrent.hash)
         return list(mc())
@@ -131,7 +152,7 @@ class TorrentGroup(Sequence):
         '''resumes all torrents in group'''
         if not self.data:
             return []
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.resume(torrent.hash)
         return list(mc())
@@ -140,7 +161,7 @@ class TorrentGroup(Sequence):
         '''opens all torrents in group'''
         if not self.data:
             return []
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.open(torrent.hash)
         return list(mc())
@@ -149,7 +170,7 @@ class TorrentGroup(Sequence):
         '''closes all torrents in group'''
         if not self.data:
             return []
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.close(torrent.hash)
         return list(mc())
@@ -164,7 +185,7 @@ class TorrentGroup(Sequence):
         all the Torrents in the group in bytes'''
         if not self.data:
             return 0
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.size_bytes(torrent.hash)
         return sum(mc())
@@ -174,7 +195,7 @@ class TorrentGroup(Sequence):
         are complete'''
         if not self.data:
             return True
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.complete(torrent.hash)
         return all(mc())
@@ -183,7 +204,7 @@ class TorrentGroup(Sequence):
         '''returns True if any of the Torrents in the group are hashing'''
         if not self.data:
             return False
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.hashing(torrent.hash)
         return any(mc())
@@ -193,7 +214,7 @@ class TorrentGroup(Sequence):
         '''returns the total overall ratio of all the Torrents in the group'''
         if not self.data:
             return 0
-        mc = self.group.data[0].server.get_mc_proxy()
+        mc = self.data[0].server.get_mc_proxy()
         for torrent in self.data:
             mc.d.ratio(torrent.hash)
 
