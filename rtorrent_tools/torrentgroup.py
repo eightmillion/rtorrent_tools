@@ -24,10 +24,33 @@ class TorrentGroup(MutableSequence):
             servers = [ x.server for x in self.data ]
             if servers.count(servers[0]) != len(servers):
                 raise GroupError(
-                    f'GroupError: all items in TorrentGroup must have same server')
+                    'GroupError: all items in TorrentGroup must have same server')
 
     def __len__(self):
         return len(self.data)
+
+    def sort(self):
+        self.data.sort()
+
+    def __delitem__(self, i): del self.data[i]
+
+    def __setitem__(self, i, v):
+        self.check(v)
+        self.data[i] = v
+
+    def insert(self, i, v):
+        self.check(v)
+        self.data.insert(i, v)
+
+    def append(self, v):
+        self.check(v)
+        self.data.insert(len(self.data), v)
+
+    def remove(self, value):
+        self.data.remove(value)
+
+    def __str__(self):
+        return str(self.data)
 
     def pop(self, value=False):
         if value:
@@ -167,12 +190,6 @@ class TorrentGroup(MutableSequence):
 
     def set_create_resize(self):
         self.each(lambda x:x.set_create_resize())
-
-    def remove(self, value):
-        self.data.remove(value)
-
-    def append(self, value):
-        self.data.append(value)
 
     def erase_all(self):
         '''removes all Torrents in group from rtorrent'''
@@ -319,15 +336,14 @@ class TorrentGroup(MutableSequence):
 
     def set_throttle_name(self, name):
         '''sets a throttle name for each Torrent in the group.'''
+        if not self.data:
+            return []
         self.pause_all()
         mc = self.data[0].server.get_mc_proxy()
         for torrent in self:
             mc.d.throttle_name.set(torrent.hash, name)
         mc()
         self.resume_all()
-
-    def sort(self):
-        self.data.sort()
 
     def multicall(self, arg):
         if not self.data:
@@ -348,26 +364,7 @@ class TorrentGroup(MutableSequence):
         if self.data:
             if self.data[0].server != v.server:
                 raise GroupError(
-                    f'GroupError: all items in TorrentGroup must have same server')
-
-    def __len__(self): return len(self.data)
-
-    def __delitem__(self, i): del self.data[i]
-
-    def __setitem__(self, i, v):
-        self.check(v)
-        self.data[i] = v
-
-    def insert(self, i, v):
-        self.check(v)
-        self.data.insert(i, v)
-
-    def append(self, v):
-        self.check(v)
-        self.data.insert(len(self.data), v)
-
-    def __str__(self):
-        return str(self.data)
+                    'GroupError: all items in TorrentGroup must have same server')
 
 class GroupError(Exception):
 
