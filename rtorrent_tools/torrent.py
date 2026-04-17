@@ -683,10 +683,6 @@ class Torrent:
     def seed_time(self):
         return TimePeriod(seconds=time.time()-int(self.custom("addtime")))
 
-    def __bonus(self, season=False, modifier=1):
-        return modifier * 0.15 * self.size().toGiB() * \
-                4 * 24 * [1, self.seed_time().days / 28.0][season]
-
     def __repr__(self):
         return self.name
 

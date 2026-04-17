@@ -17,6 +17,8 @@ class TorrentGroup(MutableSequence):
         self.down = self.__down(self)
         self.up = self.__up(self)
         self.directory = self.__directory(self)
+        self.directory_base = self.__directory_base(self)
+        self.custom = self.__custom(self)
 
         if self.data:
             servers = [ x.server for x in self.data ]
@@ -67,6 +69,8 @@ class TorrentGroup(MutableSequence):
             self.group = group
 
         def total(self):
+            if not self.data:
+                return []
             if not self.group.data:
                 return SizeBytes(0)
             mc = self.group.data[0].server.get_mc_proxy()
@@ -88,12 +92,16 @@ class TorrentGroup(MutableSequence):
             self.group = group
 
         def __call__(self):
+            if not self.group.data:
+                return []
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.directory(torrent.hash)
             return mc()
 
         def set(self, directory):
+            if not self.group.data:
+                return []
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.directory.set(torrent.hash, directory)
@@ -105,15 +113,56 @@ class TorrentGroup(MutableSequence):
             self.group = group
 
         def __call__(self):
+            if not self.group.data:
+                return []
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.directory_base(torrent.hash)
             return mc()
 
         def set(self, directory):
+            if not self.group.data:
+                return []
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.directory_base.set(torrent.hash, directory)
+            return mc()
+
+    class __custom:
+
+        def __init__(self, group):
+            self.group = group
+
+        def if_z(self, key, default):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom.if_z(torrent.hash, key, default)
+            return mc()
+
+        def __call__(self, key):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom(torrent.hash, key)
+            return mc()
+
+        def set(self, key, value):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom.set(torrent.hash, key, value)
+            return mc()
+
+        def keys(self):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom.keys(torrent.hash)
             return mc()
 
     def set_create_resize(self):
@@ -302,8 +351,6 @@ class TorrentGroup(MutableSequence):
                     f'GroupError: all items in TorrentGroup must have same server')
 
     def __len__(self): return len(self.data)
-
-    def __getitem__(self, i): return self.data[i]
 
     def __delitem__(self, i): del self.data[i]
 
