@@ -686,7 +686,7 @@ class Server:
 
                 def __init__(self, server): self.__server = server
                 def __call__(self):
-                    return getattr(self.__server._rpc.throttle.max_uploads.global()
+                    return getattr(self.__server._rpc, "throttle.max_uploads.global")()
                 def set(self, rate):
                     return getattr(self.__server._rpc,
                                    'throttle.max_uploads.global.set')('', rate)
