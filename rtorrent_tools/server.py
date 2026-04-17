@@ -675,6 +675,8 @@ class Server:
 
             def __init__(self, server):
                 self.__server = server
+                # this is spelled wrong because global as a class method throws 
+                # syntax error
                 self.globl = self.__globl(server)
                 self.div = self.__div(server)
             
@@ -684,8 +686,7 @@ class Server:
 
                 def __init__(self, server): self.__server = server
                 def __call__(self):
-                    return getattr(self.__server._rpc,
-                                   'throttle.max_uploads.global')()
+                    return getattr(self.__server._rpc.throttle.max_uploads.global()
                 def set(self, rate):
                     return getattr(self.__server._rpc,
                                    'throttle.max_uploads.global.set')('', rate)
