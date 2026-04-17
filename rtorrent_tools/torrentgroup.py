@@ -19,6 +19,11 @@ class TorrentGroup(MutableSequence):
         self.directory = self.__directory(self)
         self.directory_base = self.__directory_base(self)
         self.custom = self.__custom(self)
+        self.custom1 = self.__custom1(self)
+        self.custom2 = self.__custom2(self)
+        self.custom3 = self.__custom3(self)
+        self.custom4 = self.__custom4(self)
+        self.custom5 = self.__custom5(self)
 
         if self.data:
             servers = [ x.server for x in self.data ]
@@ -120,7 +125,7 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.directory(torrent.hash)
-            return mc()
+            return list(mc())
 
         def set(self, directory):
             if not self.group.data:
@@ -128,7 +133,7 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.directory.set(torrent.hash, directory)
-            return mc()
+            return list(mc())
 
     class __directory_base:
 
@@ -141,7 +146,7 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.directory_base(torrent.hash)
-            return mc()
+            return list(mc())
 
         def set(self, directory):
             if not self.group.data:
@@ -149,7 +154,7 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.directory_base.set(torrent.hash, directory)
-            return mc()
+            return list(mc())
 
     class __custom:
 
@@ -162,7 +167,7 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.custom.if_z(torrent.hash, key, default)
-            return mc()
+            return list(mc())
 
         def __call__(self, key):
             if not self.group.data:
@@ -170,7 +175,7 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.custom(torrent.hash, key)
-            return mc()
+            return list(mc())
 
         def set(self, key, value):
             if not self.group.data:
@@ -178,7 +183,7 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.custom.set(torrent.hash, key, value)
-            return mc()
+            return list(mc())
 
         def keys(self):
             if not self.group.data:
@@ -186,7 +191,112 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.custom.keys(torrent.hash)
-            return mc()
+            return list(mc())
+
+    class __custom1:
+
+        def __init__(self, group):
+            self.group = group
+
+        def __call__(self):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom1(torrent.hash)
+            return list(mc())
+
+        def set(self, value):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom1.set(torrent.hash, value)
+            return list(mc())
+
+    class __custom2:
+
+        def __init__(self, group):
+            self.group = group
+
+        def __call__(self):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom2(torrent.hash)
+            return list(mc())
+
+        def set(self, value):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom2.set(torrent.hash, value)
+            return list(mc())
+
+    class __custom3:
+
+        def __init__(self, group):
+            self.group = group
+
+        def __call__(self):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom3(torrent.hash)
+            return list(mc())
+
+        def set(self, value):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom3.set(torrent.hash, value)
+            return list(mc())
+
+    class __custom4:
+
+        def __init__(self, group):
+            self.group = group
+
+        def __call__(self):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom4(torrent.hash)
+            return list(mc())
+
+        def set(self, value):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom4.set(torrent.hash, value)
+            return list(mc())
+
+    class __custom5:
+
+        def __init__(self, group):
+            self.group = group
+
+        def __call__(self):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom5(torrent.hash)
+            return list(mc())
+
+        def set(self, value):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.custom5.set(torrent.hash, value)
+            return list(mc())
 
     def set_create_resize(self):
         self.each(lambda x:x.set_create_resize())

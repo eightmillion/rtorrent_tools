@@ -152,6 +152,7 @@ class JsonRpcProxy:
 
 
 class JsonRpcMultiCall:
+
     def __init__(self, server_proxy):
         self._url = server_proxy._url
         self._session = server_proxy._session
@@ -208,6 +209,7 @@ class JsonRpcMultiCall:
 
 
 class JsonRpcMultiCallChild:
+    
     def __init__(self, parent, method_path):
         self.parent = parent
         self.method_path = method_path
