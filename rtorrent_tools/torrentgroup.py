@@ -469,7 +469,7 @@ class TorrentGroup(MutableSequence):
         return pprint.pformat(self.data, width=120)
 
     def check(self, v):
-        if not isinstance(v, Torrent):
+        if type(v).__name__ != 'Torrent':
             raise TypeError(v)
         if self.data:
             if self.data[0].server != v.server:
