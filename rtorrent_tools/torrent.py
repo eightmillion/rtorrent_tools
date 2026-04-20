@@ -291,8 +291,7 @@ class Torrent:
             return self.__server._rpc.d.group(self.__hash)
 
         def name(self): 
-            groups = self.__server.choke_group.list()
-            return groups[self.__server._rpc.d.group.name(self.__hash)]
+            return self.__server._rpc.d.group.name(self.__hash)
 
         def set(self, group):
             return self.__server._rpc.d.group.set(self.__hash, group)

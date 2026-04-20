@@ -64,6 +64,7 @@ class Server:
         self.scheduler = self.__scheduler(self)
         self.protocol = self.__protocol(self)
         self.load = self.__load(self)
+        self.keys = self.__keys(self)
         self.update_views()
 
     def to_kb(self, value: str | int) -> str: return self._rpc.to_kb(value)
@@ -1063,7 +1064,7 @@ class Server:
             self.seeding = self.__seeding(server)
 
         def insert(self, comm):
-            return self.__server._rpc.group.insert(comm)
+            return self.__server._rpc.group.insert('', comm, view='main')
 
         def insert_persistent_view(self, view):
             return self.__server._rpc.group.insert_persistent_view(view)
@@ -1135,7 +1136,6 @@ class Server:
             self.use_lock = self.__use_lock(server)
             
         def save(self): return self.__server._rpc.session.save()
-        def __call__(self, value): return self.__server._rpc.session(value)
 
         class __name:
 
