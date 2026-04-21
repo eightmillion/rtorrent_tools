@@ -3,6 +3,7 @@
 from types import FunctionType
 import pprint
 from collections.abc import MutableSequence
+from itertools import batched
 from .torrent import Torrent
 from .fileutils import SizeBytes
 from .jsonrpcproxy import *
@@ -25,6 +26,7 @@ class TorrentGroup(MutableSequence):
         self.custom4 = self.__custom4(self)
         self.custom5 = self.__custom5(self)
         self.message = self.__message(self)
+        self.throttle_name = self.__throttle_name(self)
 
         if self.data:
             servers = [ x.server for x in self.data ]
@@ -463,6 +465,46 @@ class TorrentGroup(MutableSequence):
 
     def unregistered(self):
         return self.filter(lambda x: x.is_unregistered())
+
+    class __throttle_name:
+
+        def __init__(self, group):
+            self.group = group
+
+        def __call__(self):
+            '''sets a throttle name for each Torrent in the group.'''
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.throttle_name(torrent.hash)
+            return list(mc())
+
+        def set(self, name):
+            mc = self.group.data[0].server.get_mc_proxy()
+            mc2 = self.group.data[0].server.get_mc_proxy()
+            torrent_states = self.__get_states()
+            self.pause_all()
+            for torrent in self.group.data:
+                mc.d.throttle_name.set(torrent.hash, name)
+            # we had to pause the torrents to set the throttle
+            # now we restore state
+            for i, torrent in enumerate(self.group.data):
+                state = torrent_states[i]
+                if all(state):
+                    mc2.d.resume(torrent.hash)
+                if not any(state):
+                    mc2.d.stop(torrent.hash)
+                mc2()
+            return list(mc())
+
+    def __get_states(self):
+        mc = self.data[0].server.get_mc_proxy()
+        for torrent in self.group.data:
+            mc.d.state(torrent.hash)
+            mc.d.is_active(torrent.hash)
+            mc.d.is_open(torrent.hash)
+        return list(batched(mc(),3)) 
 
     def set_throttle_name(self, name):
         '''sets a throttle name for each Torrent in the group.'''
