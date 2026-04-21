@@ -321,7 +321,13 @@ class TorrentGroup(MutableSequence):
             return list(mc())
 
     def set_create_resize(self):
-        self.each(lambda x:x.set_create_resize())
+        if not self.data:
+            return []
+        mc = self.data[0].server.get_mc_proxy()
+        for torrent in self.data:
+            mc.f.multicall(torrent.hash, "f.set_create_queued=0")
+            mc.f.multicall(torrent.hash, "f.set_resize_queued=0")
+        return list(mc())
 
     def erase_all(self):
         '''removes all Torrents in group from rtorrent'''
