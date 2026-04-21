@@ -24,6 +24,7 @@ class TorrentGroup(MutableSequence):
         self.custom3 = self.__custom3(self)
         self.custom4 = self.__custom4(self)
         self.custom5 = self.__custom5(self)
+        self.message = self.__message(self)
 
         if self.data:
             servers = [ x.server for x in self.data ]
@@ -296,6 +297,25 @@ class TorrentGroup(MutableSequence):
             mc = self.group.data[0].server.get_mc_proxy()
             for torrent in self.group.data:
                 mc.d.custom5.set(torrent.hash, value)
+            return list(mc())
+
+    class __message:
+
+        def __init__(self, group):
+            self.group = group
+        def __call__(self):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.message(torrent.hash)
+            return list(mc())
+        def set(self, message):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.message.set(torrent.hash, message)
             return list(mc())
 
     def set_create_resize(self):
