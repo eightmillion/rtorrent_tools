@@ -43,15 +43,15 @@ class TorrentGroup(MutableSequence):
     def __delitem__(self, i): del self.data[i]
 
     def __setitem__(self, i, v):
-        self.check(v)
+        self.__check(v)
         self.data[i] = v
 
     def insert(self, i, v):
-        self.check(v)
+        self.__check(v)
         self.data.insert(i, v)
 
     def append(self, v):
-        self.check(v)
+        self.__check(v)
         self.data.insert(len(self.data), v)
 
     def remove(self, value):
@@ -536,7 +536,7 @@ class TorrentGroup(MutableSequence):
     def __repr__(self):
         return pprint.pformat(self.data, width=120)
 
-    def check(self, v):
+    def __check(self, v):
         if type(v).__name__ != 'Torrent':
             raise TypeError(v)
         if self.data:
