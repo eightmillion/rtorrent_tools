@@ -26,6 +26,7 @@ class TorrentGroup(MutableSequence):
         self.custom4 = self.__custom4(self)
         self.custom5 = self.__custom5(self)
         self.message = self.__message(self)
+        self.ignore_commands = self.__ignore_commands(self)
         self.throttle_name = self.__throttle_name(self)
 
         if self.data:
@@ -320,6 +321,36 @@ class TorrentGroup(MutableSequence):
                 mc.d.message.set(torrent.hash, message)
             return list(mc())
 
+    class __ignore_commands:
+
+        def __init__(self, group):
+            self.group = group
+        def __call__(self):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.ignore_commands(torrent.hash)
+            return list(mc())
+        def set(self, value):
+            if not self.group.data:
+                return []
+            mc = self.group.data[0].server.get_mc_proxy()
+            for torrent in self.group.data:
+                mc.d.ignore_commands.set(torrent.hash, value)
+            return list(mc())
+
+    def hash(self):
+        return [t.hash for t in self.data]
+
+    def bitfield(self):
+        if not self.data:
+            return []
+        mc = self.data[0].server.get_mc_proxy()
+        for torrent in self.data:
+            mc.d.bitfield(torrent.hash)
+        return list(mc())
+
     def set_create_resize(self):
         if not self.data:
             return []
@@ -342,7 +373,7 @@ class TorrentGroup(MutableSequence):
             if torrent.erase_with_files():
                 self.data.remove(torrent)
 
-    def stop_all(self):
+    def stop(self):
         '''stops all torrents in group'''
         if not self.data:
             return []
@@ -351,7 +382,7 @@ class TorrentGroup(MutableSequence):
             mc.d.stop(torrent.hash)
         return list(mc())
 
-    def start_all(self):
+    def start(self):
         '''starts all torrents in group'''
         if not self.data:
             return []
@@ -360,7 +391,7 @@ class TorrentGroup(MutableSequence):
             mc.d.start(torrent.hash)
         return list(mc())
 
-    def pause_all(self):
+    def pause(self):
         '''pauses all torrents in group'''
         if not self.data:
             return []
@@ -369,7 +400,7 @@ class TorrentGroup(MutableSequence):
             mc.d.pause(torrent.hash)
         return list(mc())
 
-    def resume_all(self):
+    def resume(self):
         '''resumes all torrents in group'''
         if not self.data:
             return []
@@ -378,7 +409,7 @@ class TorrentGroup(MutableSequence):
             mc.d.resume(torrent.hash)
         return list(mc())
 
-    def open_all(self):
+    def open(self):
         '''opens all torrents in group'''
         if not self.data:
             return []
@@ -387,7 +418,7 @@ class TorrentGroup(MutableSequence):
             mc.d.open(torrent.hash)
         return list(mc())
 
-    def close_all(self):
+    def close(self):
         '''closes all torrents in group'''
         if not self.data:
             return []
@@ -472,6 +503,30 @@ class TorrentGroup(MutableSequence):
     def unregistered(self):
         return self.filter(lambda x: x.is_unregistered())
 
+    def check_hash(self):
+        if not self.data:
+            return []
+        mc = self.data[0].server.get_mc_proxy()
+        for torrent in self.data:
+            mc.d.chech_hash(torrent.hash)
+        return list(mc())
+
+    def base_filename(self):
+        if not self.data:
+            return []
+        mc = self.data[0].server.get_mc_proxy()
+        for torrent in self.data:
+            mc.d.base_filename(torrent.hash)
+        return list(mc())
+
+    def base_path(self):
+        if not self.data:
+            return []
+        mc = self.data[0].server.get_mc_proxy()
+        for torrent in self.data:
+            mc.d.base_path(torrent.hash)
+        return list(mc())
+
     class __throttle_name:
 
         def __init__(self, group):
@@ -511,17 +566,6 @@ class TorrentGroup(MutableSequence):
             mc.d.is_active(torrent.hash)
             mc.d.is_open(torrent.hash)
         return list(batched(mc(),3)) 
-
-    def set_throttle_name(self, name):
-        '''sets a throttle name for each Torrent in the group.'''
-        if not self.data:
-            return []
-        self.pause_all()
-        mc = self.data[0].server.get_mc_proxy()
-        for torrent in self:
-            mc.d.throttle_name.set(torrent.hash, name)
-        mc()
-        self.resume_all()
 
     def multicall(self, arg):
         if not self.data:

@@ -38,6 +38,7 @@ class Torrent:
         self.peers_min = self.__peers_min(server, hash)
         self.message = self.__message(server, hash)
         self.priority = self.__priority(server, hash)
+        self.protocol = self.__protocol(server, hash)
         self.skip = self.__skip(server, hash)
         self.tied_to_file = self.__tied_to_file(server, hash)
         self.throttle_name = self.__throttle_name(server, hash)
@@ -78,6 +79,23 @@ class Torrent:
         def set(self, value):
             return self.__server._rpc.d.ignore_commands.set(self.__hash)
 
+    class __protocol:
+
+        def __init__(self, server, hash):
+            self.__server = server
+            self.__hash = hash
+            self.pex = self.__pex(server, hash)
+
+        class __pex:
+
+            def __init__(self, server, hash):
+                self.__server = server
+                self.hash = hash
+            def __call__(self):
+                return self.__server._rpc.protocol.pex(self.hash)
+            def set(self, value):
+                return self.__server._rpc.protocol.pex.set(self.hash, value)
+
     class __peer_exchange:
 
         def __init__(self, server, hash):
@@ -86,7 +104,7 @@ class Torrent:
         def __call__(self):
             return self.__server._rpc.d.peer_exchange(self.__hash)
         def set(self, value):
-            return self.__server._rpc.d.peer_exchange(self.__hash)
+            return self.__server._rpc.d.peer_exchange.set(self.__hash, value)
 
     class __hashing_failed:
 
@@ -438,9 +456,6 @@ class Torrent:
 
     def hashing(self):
         return self.server._rpc.d.hashing(self.hash)
-
-    def ignore_commands(self):
-        return self.server._rpc.d.ignore_commands(self.hash)
 
     def left_bytes(self):
         return SizeBytes(self.server._rpc.d.left_bytes(self.hash))
